@@ -5,22 +5,23 @@ local plr = game.Players.LocalPlayer
 local cam = workspace.CurrentCamera
 local enabled = true
 
-local RaycastUtil = require(plr.PlayerScripts.ZS_Framework.Modules.Utils.RaycastUtil)
-local ogCast = RaycastUtil.CastRay
+local CastRay = filtergc("function", {
+	Name = "CastRay"
+}, true)
 
--- colors
+assert(CastRay, "????")
+
 local bg = Color3.fromRGB(46, 52, 64)
 local textCol = Color3.fromRGB(229, 233, 240)
 local green = Color3.fromRGB(163, 190, 140)
 local red = Color3.fromRGB(191, 97, 106)
 local blue = Color3.fromRGB(136, 192, 208)
 
--- notif stuff
 local gui = Instance.new("ScreenGui")
 gui.Name = "Notifs"
 gui.ResetOnSpawn = false
-gui.IgnoreGuiInset = true      -- ADDED
-gui.DisplayOrder = 999999       -- ADDED
+gui.IgnoreGuiInset = true
+gui.DisplayOrder = 999999
 gui.Parent = plr:WaitForChild("PlayerGui")
 
 local holder = Instance.new("Frame", gui)
@@ -67,8 +68,8 @@ local function notify(msg, dur, col)
 	txt.TextXAlignment = Enum.TextXAlignment.Left
 	txt.Text = msg
 	txt.TextTransparency = 1
-	txt.RichText = true          -- ADDED
-	txt.TextWrapped = true       -- ADDED
+	txt.RichText = true
+	txt.TextWrapped = true
 	
 	local prog = Instance.new("Frame", toast)
 	prog.AnchorPoint = Vector2.new(0, 1)
@@ -95,7 +96,6 @@ local function notify(msg, dur, col)
 	end)
 end
 
--- targeting
 local function getTarget()
 	local zombies = workspace:FindFirstChild("Zombies")
 	local char = plr.Character
@@ -125,8 +125,9 @@ local function getTarget()
 	return best
 end
 
--- funny hook boiii
-RaycastUtil.CastRay = newcclosure(function(self, cfg, ignore)
+local ogCast = clonefunction(CastRay)
+
+hookfunction(CastRay, newcclosure(function(self, cfg, ignore)
 	if not enabled then
 		return ogCast(self, cfg, ignore)
 	end
@@ -138,9 +139,8 @@ RaycastUtil.CastRay = newcclosure(function(self, cfg, ignore)
 	end
 	
 	return ogCast(self, cfg, ignore)
-end)
+end))
 
--- toggle
 uis.InputBegan:Connect(function(inp, gp)
 	if gp or inp.KeyCode ~= Enum.KeyCode.T then return end
 	
