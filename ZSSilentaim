@@ -9,8 +9,6 @@ local CastRay = filtergc("function", {
 	Name = "CastRay"
 }, true)
 
-assert(CastRay, "????")
-
 local bg = Color3.fromRGB(46, 52, 64)
 local textCol = Color3.fromRGB(229, 233, 240)
 local green = Color3.fromRGB(163, 190, 140)
