@@ -2,13 +2,12 @@ local ts = game:GetService("TweenService")
 local uis = game:GetService("UserInputService")
 local plr = game.Players.LocalPlayer
 
-local cam = workspace.CurrentCamera
 local enabled = true
 
-local CastRay = filtergc("function", {
-	Name = "CastRay"
-}, true)
+local CastRay = filtergc("function", { Name = "CastRay" }, true)
+if not CastRay then warn("dumbass are you even in the correct game") return end
 
+--i used ai for the notification sorry
 local bg = Color3.fromRGB(46, 52, 64)
 local textCol = Color3.fromRGB(229, 233, 240)
 local green = Color3.fromRGB(163, 190, 140)
@@ -35,115 +34,119 @@ layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 local toasts = {}
 
 local function notify(msg, dur, col)
-	dur = dur or 3
-	col = col or blue
-	
-	if #toasts >= 5 then
-		local old = table.remove(toasts, 1)
-		if old then old:Destroy() end
-	end
-	
-	local toast = Instance.new("Frame")
-	toast.BackgroundColor3 = bg
-	toast.Size = UDim2.new(1, 0, 0, 0)
-	toast.ClipsDescendants = true
-	toast.Parent = holder
-	Instance.new("UICorner", toast).CornerRadius = UDim.new(0, 6)
-	
-	local bar = Instance.new("Frame", toast)
-	bar.BackgroundColor3 = col
-	bar.Size = UDim2.new(0, 3, 0.6, 0)
-	bar.Position = UDim2.new(0, 10, 0.2, 0)
-	Instance.new("UICorner", bar).CornerRadius = UDim.new(1, 0)
-	
-	local txt = Instance.new("TextLabel", toast)
-	txt.BackgroundTransparency = 1
-	txt.Position = UDim2.new(0, 24, 0, 0)
-	txt.Size = UDim2.new(1, -34, 1, 0)
-	txt.Font = Enum.Font.GothamMedium
-	txt.TextSize = 14
-	txt.TextColor3 = textCol
-	txt.TextXAlignment = Enum.TextXAlignment.Left
-	txt.Text = msg
-	txt.TextTransparency = 1
-	txt.RichText = true
-	txt.TextWrapped = true
-	
-	local prog = Instance.new("Frame", toast)
-	prog.AnchorPoint = Vector2.new(0, 1)
-	prog.Position = UDim2.new(0, 0, 1, 0)
-	prog.Size = UDim2.new(1, 0, 0, 2)
-	prog.BackgroundColor3 = col
-	prog.BackgroundTransparency = 0.5
-	
-	table.insert(toasts, toast)
-	
-	ts:Create(toast, TweenInfo.new(0.3, Enum.EasingStyle.Quint), {Size = UDim2.new(1, 0, 0, 44)}):Play()
-	ts:Create(txt, TweenInfo.new(0.2), {TextTransparency = 0}):Play()
-	
-	local progTween = ts:Create(prog, TweenInfo.new(dur, Enum.EasingStyle.Linear), {Size = UDim2.new(0, 0, 0, 2)})
-	progTween:Play()
-	
-	progTween.Completed:Connect(function()
-		ts:Create(toast, TweenInfo.new(0.2), {Size = UDim2.new(1, 0, 0, 0)}):Play()
-		task.wait(0.2)
-		for i, v in toasts do
-			if v == toast then table.remove(toasts, i) break end
-		end
-		toast:Destroy()
-	end)
+    dur = dur or 3
+    col = col or blue
+
+    if #toasts >= 5 then
+        local old = table.remove(toasts, 1)
+        if old then old:Destroy() end
+    end
+
+    local toast = Instance.new("Frame")
+    toast.BackgroundColor3 = bg
+    toast.Size = UDim2.new(1, 0, 0, 0)
+    toast.ClipsDescendants = true
+    toast.Parent = holder
+    Instance.new("UICorner", toast).CornerRadius = UDim.new(0, 6)
+
+    local bar = Instance.new("Frame", toast)
+    bar.BackgroundColor3 = col
+    bar.Size = UDim2.new(0, 3, 0.6, 0)
+    bar.Position = UDim2.new(0, 10, 0.2, 0)
+    Instance.new("UICorner", bar).CornerRadius = UDim.new(1, 0)
+
+    local txt = Instance.new("TextLabel", toast)
+    txt.BackgroundTransparency = 1
+    txt.Position = UDim2.new(0, 24, 0, 0)
+    txt.Size = UDim2.new(1, -34, 1, 0)
+    txt.Font = Enum.Font.GothamMedium
+    txt.TextSize = 14
+    txt.TextColor3 = textCol
+    txt.TextXAlignment = Enum.TextXAlignment.Left
+    txt.Text = msg
+    txt.TextTransparency = 1
+    txt.RichText = true
+    txt.TextWrapped = true
+
+    local prog = Instance.new("Frame", toast)
+    prog.AnchorPoint = Vector2.new(0, 1)
+    prog.Position = UDim2.new(0, 0, 1, 0)
+    prog.Size = UDim2.new(1, 0, 0, 2)
+    prog.BackgroundColor3 = col
+    prog.BackgroundTransparency = 0.5
+
+    table.insert(toasts, toast)
+
+    ts:Create(toast, TweenInfo.new(0.3, Enum.EasingStyle.Quint), {Size = UDim2.new(1, 0, 0, 44)}):Play()
+    ts:Create(txt, TweenInfo.new(0.2), {TextTransparency = 0}):Play()
+
+    local progTween = ts:Create(prog, TweenInfo.new(dur, Enum.EasingStyle.Linear), {Size = UDim2.new(0, 0, 0, 2)})
+    progTween:Play()
+
+    progTween.Completed:Connect(function()
+        ts:Create(toast, TweenInfo.new(0.2), {Size = UDim2.new(1, 0, 0, 0)}):Play()
+        task.wait(0.2)
+        for i, v in toasts do
+            if v == toast then table.remove(toasts, i) break end
+        end
+        toast:Destroy()
+    end)
 end
 
 local function getTarget()
-	local zombies = workspace:FindFirstChild("Zombies")
-	local char = plr.Character
-	local hrp = char and char:FindFirstChild("HumanoidRootPart")
-	if not zombies or not hrp then return end
-	
-	local best, bestScore = nil, math.huge
-	local center = cam.ViewportSize / 2
-	
-	for _, z in zombies:GetChildren() do
-		local head = z:FindFirstChild("Head")
-		if not head then continue end
-		
-		local pos, vis = cam:WorldToScreenPoint(head.Position)
-		if not vis then continue end
-		
-		local screenDist = (Vector2.new(pos.X, pos.Y) - center).Magnitude
-		local worldDist = (head.Position - hrp.Position).Magnitude
-		
-		local score = screenDist < 200 and worldDist or (screenDist + worldDist * 0.5)
-		
-		if score < bestScore then
-			best, bestScore = z, score
-		end
-	end
-	
-	return best
+    local zombies = workspace:FindFirstChild("Zombies")
+    local char = plr.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    if not zombies or not hrp then return end
+
+    local best, bestDist = nil, math.huge
+
+    for _, z in zombies:GetChildren() do
+        local head = z:FindFirstChild("Head")
+        if not head then continue end
+
+        local dist = (head.Position - hrp.Position).Magnitude
+        if dist < bestDist then
+            best, bestDist = z, dist
+        end
+    end
+
+    return best
+end
+
+local function spoof(part)
+    return {
+        Position = part.Position;
+        Instance = part;
+    }
 end
 
 local ogCast = clonefunction(CastRay)
 
 hookfunction(CastRay, newcclosure(function(self, cfg, ignore)
-	if not enabled then
-		return ogCast(self, cfg, ignore)
-	end
-	
-	local target = getTarget()
-	if target and target:FindFirstChild("Head") then
-		local head = target.Head
-		return {Position = head.Position, Instance = head}
-	end
-	
-	return ogCast(self, cfg, ignore)
+    if not enabled then return ogCast(self, cfg, ignore) end
+
+    local target = getTarget()
+    if not target then return ogCast(self, cfg, ignore) end
+
+    if target.Name == "ZT_ToxicZombie" then
+        local ok, hitbox = pcall(function()
+            return target.Hitboxes.Flesh.Head.HITBOX_Head
+        end)
+
+        if ok and hitbox then return spoof(hitbox) end
+    end
+
+    local head = target:FindFirstChild("Head")
+    if head then return spoof(head) end
+
+    return ogCast(self, cfg, ignore)
 end))
 
 uis.InputBegan:Connect(function(inp, gp)
-	if gp or inp.KeyCode ~= Enum.KeyCode.T then return end
-	
-	enabled = not enabled
-	notify(enabled and "Silent Aim: ON" or "Silent Aim: OFF", 2, enabled and green or red)
+    if gp or inp.KeyCode ~= Enum.KeyCode.T then return end
+    enabled = not enabled
+    notify(enabled and "Silent Aim: ON" or "Silent Aim: OFF", 2, enabled and green or red)
 end)
 
 notify("fuck em zombies boii", 3.4, blue)
