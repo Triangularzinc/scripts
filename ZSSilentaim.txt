@@ -2,7 +2,13 @@ getgenv().Config = {
 	SilentAim = true,
 	AimPart = "Head",
 	ToggleBind = Enum.KeyCode.T,
+	Wallbang = true;
 }
+
+if getgenv().SLoaded then
+	return
+end
+getgenv().SLoaded = true
 
 local TweenService = cloneref(game:GetService("TweenService"))
 local HttpService = cloneref(game:GetService("HttpService"))
@@ -98,7 +104,7 @@ local function GetClosestZombie()
 	local HRP = Char and Char:FindFirstChild("HumanoidRootPart")
 	if not Zombies or not HRP then return end
 
-	for _, Zombie in ipairs(Zombies:GetChildren()) do
+	for _, Zombie in Zombies:GetChildren() do
 		local AimPart = Zombie:FindFirstChild(Config.AimPart)
 		if not AimPart then continue end
 
@@ -121,15 +127,60 @@ hookfunction(CastRay, newcclosure(function(Self, Cfg, Ignore)
 	local Target = GetClosestZombie()
 	if not Target then return OgCast(Self, Cfg, Ignore) end
 
+	local AimPos, AimInst
+
 	if Target.Name == "ZT_ToxicZombie" then
 		local Ok, Hitbox = pcall(function() return Target.Hitboxes.Flesh.Head.HITBOX_Head end)
-		if Ok and Hitbox then return {Position = Hitbox.Position, Instance = Hitbox} end
+		if Ok and Hitbox then
+			AimPos = Hitbox.Position
+			AimInst = Hitbox
+		end
 	end
 
-	local AimPart = Target:FindFirstChild(Config.AimPart)
-	if AimPart then return {Position = AimPart.Position, Instance = AimPart} end
+	if not AimPos then
+		local Part = Target:FindFirstChild(Config.AimPart)
+		if Part then
+			AimPos = Part.Position
+			AimInst = Part
+		end
+	end
 
-	return OgCast(Self, Cfg, Ignore)
+	if not AimPos then return OgCast(Self, Cfg, Ignore) end
+
+	if Config.Wallbang then
+		return {Position = AimPos, Instance = AimInst}
+	else
+		local Camera = workspace.CurrentCamera
+		local Origin = Camera.CFrame.Position
+		local Direction = (AimPos - Origin).Unit * 5000
+		local Params = RaycastParams.new()
+		Params.FilterType = Enum.RaycastFilterType.Blacklist
+		Params.FilterDescendantsInstances = {Char}
+		Params.IgnoreWater = true
+
+		if Ignore then
+			for _, Item in ipairs(Ignore) do
+				table.insert(Params.FilterDescendantsInstances, Item)
+			end
+		end
+
+		local IgnoreFolder = workspace:FindFirstChild("Ignore")
+		if IgnoreFolder then
+			table.insert(Params.FilterDescendantsInstances, IgnoreFolder)
+		end
+
+		local Result = workspace:Raycast(Origin, Direction, Params)
+
+		if Result and Result.Instance then
+			if Result.Instance:IsDescendantOf(Target) then
+				return {Position = AimPos, Instance = AimInst}
+			else
+				return OgCast(Self, Cfg, Ignore)
+			end
+		else
+			return {Position = AimPos}
+		end
+	end
 end))
 
 UserInputService.InputBegan:Connect(function(Input, GP)
